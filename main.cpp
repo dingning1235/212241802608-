@@ -1,37 +1,48 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
+
 using namespace cv;
 using namespace std;
-void HoughTranslate(Mat& image)
-{
-    //做边缘检测首先要进行高斯边缘模糊，如果利用Canny高斯边缘模糊Canny会帮我们做
-    Mat image_gray, dst;
-    Canny(image, image_gray, 150, 200);//100,200分别是低阈值和高阈值输出二值图
-    imshow("edge_image", image_gray);
-    cvtColor(image_gray, dst, COLOR_GRAY2BGR);
-
-    vector<Vec4f> plines;//吧每个像素点的平面坐标转化为极坐标产生的曲线放入集合中
-    HoughLinesP(image_gray, plines, 1, CV_PI / 180.0, 10, 0, 10);//从平面坐标转换到霍夫空间,最终输出的是直线的两个点（x0,y0,x1,y1）
-    Scalar color = Scalar(0, 0, 255);
-    for (size_t i = 0; i < plines.size(); i++)
-    {
-        Vec4f hline = plines[i];
-        line(dst, Point(hline[0], hline[1]), Point(hline[2], hline[3]), color, 3, LINE_AA);
+//工程类的建立
+class colour{
+public:
+    //转换色彩空间的函数
+    void tran(Mat &image){
+        Mat gray;//输出图像的定义
+        cvtColor(image,gray,COLOR_BGR2GRAY);//转换函数的应用
+        imshow("gray",gray);// 输出
     }
-    imshow("hough_line_detection", dst);
+    //添加高斯滤波的函数
+    void GS(Mat &image){
+        Mat dst;//输出图像的定义
+        GaussianBlur(image,dst,Size(3,3),15);//高斯函数
+        imshow("GS",dst);//输出
+    }
+    // 二值化函数
+    void T(Mat &image){
+        Mat gray;//输出图像的定义
+        cvtColor(image,gray,COLOR_BGR2GRAY);//转换函数的应用
+        Mat mask;//二值化图像定义
+        inRange( gray, Scalar(15, 15, 15), Scalar(95, 95, 95), mask);
+        imshow("two",mask);
+    }
+};
 
-}
 int main()
 {
-    Mat img = imread("F:\\packages\\packages\\img\\board.jpg");    // 这边修改成自己的图片路径，注意双斜杠
-
+    Mat img = imread("F:\\packages\\packages\\img\\RM.png");    // 这边修改成自己的图片路径，注意双斜杠
+    //判断是否有图片
     if(img.empty())
     {
         cout << "can't read this image!" << endl;
         return 0;
     }
-    imshow("image", img);
-    HoughTranslate(img);
+
+    imshow("image", img);  //原图展示
+    colour a;              //对象的定义
+    a.tran(img);           //转换色彩空间
+    a.GS(img);             //添加高斯滤波
+    a.T(img);              //二值化
     waitKey(0);
 
     return 0;
